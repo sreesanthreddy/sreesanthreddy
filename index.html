@@ -931,19 +931,7 @@ function unmuteIntroVideo(){
 });
 
 // Visible hint so user knows to interact
-window.addEventListener('DOMContentLoaded', ()=>{
-  const intro = document.getElementById('intro');
-  if(!intro) return;
-  const hint = document.createElement('div');
-  hint.id = 'soundHint';
-  hint.innerHTML = '🔊 <span style="margin-left:6px">Tap or move mouse to enable sound</span>';
-  hint.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,calc(-50% - 130px));z-index:5;padding:12px 22px;background:rgba(227,176,122,0.95);color:#0a0a0a;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,0.4);transition:opacity .4s;animation:soundHintPulse 2.2s ease-in-out infinite;cursor:pointer;white-space:nowrap';
-  const st = document.createElement('style');
-  st.textContent = '@keyframes soundHintPulse{0%,100%{box-shadow:0 8px 24px rgba(0,0,0,0.4),0 0 0 0 rgba(227,176,122,0.6)}50%{box-shadow:0 8px 24px rgba(0,0,0,0.4),0 0 0 18px rgba(227,176,122,0)}}';
-  document.head.appendChild(st);
-  hint.addEventListener('click', unmuteIntroVideo);
-  intro.appendChild(hint);
-});
+// (sound hint pill removed — Enter button click is the one interaction needed)
 
 const intro=document.getElementById('intro'),introBtn=document.getElementById('introBtn'),introLoading=document.getElementById('introLoading');
 let introClosed=false;
@@ -1051,6 +1039,14 @@ if(imgModal){
     for(const f of files){ while(i<slots.length && slots[i].classList.contains('filled')) i++; if(i>=slots.length) break; const url=await fileToDataUrl(f); saveAsset(slots[i].dataset.key,url); i++; }
   });
 }
-
-// Robot mascot speech bubbles
-const speechLines = ["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","B
+const speechLines = ["Solution architect building enterprise solutions.","Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal roles.","300K devices. 83 TPS. Quiet."];
+const speech = document.getElementById('speech');
+const robo = document.getElementById('robo');
+let li = 0;
+function typeLine(t){ return new Promise(r=>{ if(!speech){r();return;} speech.innerHTML='<span class="t"></span><span class="cursor"></span>'; const tEl=speech.querySelector('.t'); let i=0; const iv=setInterval(()=>{ tEl.textContent=t.slice(0,i++); if(i>t.length){clearInterval(iv);setTimeout(r,2500);} },38); }); }
+async function speak(){ if(document.body.classList.contains('locked')){setTimeout(speak,800);return;} if(!robo||!speech) return; const r=robo.getBoundingClientRect(); const x=r.left+r.width/2; if(x<50||x>innerWidth-50){setTimeout(speak,1200);return;} speech.classList.add('show'); await typeLine(speechLines[li%speechLines.length]); li++; speech.classList.remove('show'); setTimeout(speak,3500); }
+if(speech && robo){ setTimeout(speak,2500); robo.addEventListener('mouseenter',()=>robo.style.animationPlayState='paused'); robo.addEventListener('mouseleave',()=>robo.style.animationPlayState='running'); }
+</script>
+</body>
+</html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
