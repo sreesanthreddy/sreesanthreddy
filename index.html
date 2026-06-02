@@ -16,12 +16,9 @@ a{color:inherit;text-decoration:none}
 ::selection{background:var(--ink);color:var(--paper)}
 img{display:block;max-width:100%}
 .paper-tex{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;background-image:radial-gradient(ellipse at 20% 30%,rgba(124,114,104,0.04),transparent 60%),radial-gradient(ellipse at 80% 70%,rgba(124,114,104,0.05),transparent 60%)}
-body{cursor:none}
-.cur{position:fixed;top:0;left:0;width:10px;height:10px;border-radius:50%;background:var(--ink);transform:translate(-50%,-50%);pointer-events:none;z-index:9999;mix-blend-mode:multiply}
-.cur-r{position:fixed;top:0;left:0;width:42px;height:42px;border-radius:50%;border:1px solid var(--rule-2);transform:translate(-50%,-50%);pointer-events:none;z-index:9998;transition:transform .12s ease,opacity .2s;mix-blend-mode:multiply}
-body.hover .cur-r{opacity:0}
-body.hover .cur{width:34px;height:34px;background:var(--ox)}
-@media(max-width:900px){body{cursor:auto}.cur,.cur-r{display:none}}
+/* Use native browser cursor everywhere — guarantees visibility on every section */
+body{cursor:auto}
+.cur,.cur-r{display:none!important}
 .glow-cyan{position:fixed;top:0;left:0;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(92,242,255,0.18),rgba(92,242,255,0.04) 40%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none;z-index:1;mix-blend-mode:screen;filter:blur(20px);will-change:transform}
 .glow-warm{position:fixed;top:0;left:0;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(255,138,92,0.22),rgba(255,106,213,0.06) 50%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none;z-index:1;mix-blend-mode:screen;filter:blur(18px);will-change:transform}
 .glow-violet{position:fixed;top:0;left:0;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,0.30),transparent 65%);transform:translate(-50%,-50%);pointer-events:none;z-index:1;mix-blend-mode:screen;filter:blur(12px);will-change:transform}
@@ -32,8 +29,8 @@ body.hover .cur{width:34px;height:34px;background:var(--ox)}
 .intro-meta b{color:#e7e0d0;font-weight:500}
 /* Fullscreen video background for intro */
 .intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 28%;z-index:0;animation:videoFadeIn 2s ease-out both;animation-delay:.2s;opacity:0;filter:contrast(1.05) saturate(1.05) brightness(0.85);pointer-events:none}
-@media(max-width:900px){.intro-video{object-position:center 18%}}
-@media(max-width:600px){.intro-video{object-position:center 15%}}
+/* Mobile: show ENTIRE video (no crop) — letterbox is fine, full face visible */
+@media(max-width:900px){.intro-video{object-fit:contain;object-position:center center;background:#070708}}
 /* Suppress every browser-injected overlay/control on the video */
 .intro-video::-webkit-media-controls,
 .intro-video::-webkit-media-controls-overlay-play-button,
@@ -385,10 +382,6 @@ footer .container{padding:0 36px}
 <body class="locked">
 
 <div class="intro" id="intro">
-  <div class="intro-meta">
-    <div>// portfolio · v2026.10<b style="display:block;margin-top:4px">Sreesanth Reddy Samala</b></div>
-    <div style="text-align:right">// Kansas City, MO<b style="display:block;margin-top:4px">Lead AI &amp; Solutions Architect</b></div>
-  </div>
   <video class="intro-video" id="introVideo" autoplay muted loop playsinline preload="auto"
          disablepictureinpicture disableremoteplayback x-webkit-airplay="deny"
          controlslist="nodownload nofullscreen noremoteplayback noplaybackrate"
@@ -397,9 +390,7 @@ footer .container{padding:0 36px}
   </video>
   <div class="intro-video-overlay"></div>
   <div class="intro-photo-grain"></div>
-  <div class="intro-rec">
-    <span class="rec-dot"></span> REC · 2026.10
-  </div>
+  <audio id="introAudio" preload="auto"><source src="assets/opening-audio.m4a" type="audio/mp4"></audio>
   <h1 class="intro-title" id="introTitle"></h1>
   <button class="intro-btn" id="introBtn">▶ Check out my profile <span class="arr">→</span></button>
   <div class="intro-loading" id="introLoading">Playing intro · <span class="bar"></span><span style="margin-left:14px;cursor:pointer;color:rgba(231,224,208,0.7);text-decoration:underline" id="skipIntro">skip</span></div>
@@ -778,33 +769,49 @@ introBtn.addEventListener('click',()=>{
   Audio.init();Audio.resume();
   Audio.play({freq:200,dur:0.4,vol:0.8,sweep:300});
   const v=document.getElementById('introVideo');
+  const a=document.getElementById('introAudio');
+
+  function closeIntroNow(){
+    intro.classList.add('gone');
+    document.body.classList.remove('locked');
+    setTimeout(()=>{
+      intro.style.display='none';
+      if(v){try{v.pause();v.muted=true;}catch(e){}}
+      if(a){try{a.pause();}catch(e){}}
+    },1200);
+  }
+
+  // Restart video from frame 0, no audio (audio comes from the separate <audio> element)
   if(v){
     try{
       v.pause();
-      v.loop=false;            // CRITICAL: disable loop so 'ended' event fires
+      v.loop=false;
       v.removeAttribute('loop');
-      v.muted=false;
-      v.volume=1.0;
+      v.muted=true;             // keep video silent — audio plays from <audio>
       v.currentTime=0;
-      const playPromise=v.play();
-      if(playPromise) playPromise.catch(err=>{ console.warn('video play blocked:',err); closeIntroNow(); });
-    }catch(e){ console.warn('video unmute failed:',e); closeIntroNow(); }
+      v.play().catch(()=>{});
+    }catch(e){}
   }
+  // Play the audio track explicitly — this works reliably after click
+  if(a){
+    try{
+      a.currentTime=0;
+      a.volume=1.0;
+      const p=a.play();
+      if(p) p.catch(err=>console.warn('audio play blocked:',err));
+      a.addEventListener('ended', closeIntroNow, {once:true});
+    }catch(e){}
+  }
+
   introBtn.classList.add('hidden');introLoading.classList.add('show');
   setTimeout(()=>introLoading.classList.add('go'),60);
   intro.classList.add('start');
   setTimeout(()=>Audio.bigChime(),600);
 
-  function closeIntroNow(){
-    intro.classList.add('gone');
-    document.body.classList.remove('locked');
-    setTimeout(()=>{ intro.style.display='none'; if(v){try{v.pause();v.muted=true;}catch(e){}} },1200);
-  }
-
-  // Close on video end
+  // Also close when the video ends (whichever fires first)
   if(v){ v.addEventListener('ended', closeIntroNow, {once:true}); }
-  // Safety: hard close at 16s (video is 15s)
-  setTimeout(()=>{ if(intro.style.display!=='none' && !intro.classList.contains('gone')) closeIntroNow(); }, 16000);
+  // Safety hard close at 17s (audio is ~15s)
+  setTimeout(()=>{ if(intro.style.display!=='none' && !intro.classList.contains('gone')) closeIntroNow(); }, 17000);
 });
 
 // Skip button — close intro immediately
@@ -846,4 +853,4 @@ document.getElementById('imagesBtn').addEventListener('click',()=>{imgModal.clas
 document.getElementById('imgDone').addEventListener('click',()=>{imgModal.classList.remove('open');Audio.chime();});
 document.getElementById('imgClearAll').addEventListener('click',()=>{if(!confirm('Clear all uploaded images?'))return;ASSETS.forEach(clearAsset);});
 imgModal.addEventListener('click',e=>{if(e.target===imgModal)imgModal.classList.remove('open');});
-document.querySelectorAll('.img-slot[data-key]').forEach(slot=>{const key=slot.dataset.key;slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const f=input.files[0];if(!f)return;const url=await fileToDataUrl(f);saveAsset(key,url);};input.click();});slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('dragover
+document.querySelectorAll('.img-slot[data-key]').forEach(slot=>{const key=slot.dataset.key;slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const f=input.files[0];if(!f)return;const url=await fileToDataUrl(f);saveAsset(key,url);};input.click();});slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('dragover');});slot.addEventListener('dragleave',()=>slot.classList.remove('dragover'));slot.addEventListener('drop',async e=>{e.preventDefault();slot.classList.remove('dragover');const f=e.dataTransfer.files[0];if(!f||!f.type.startsWith('image/'))return;const url=await fileToDataUrl(f);saveAsset(key,url);});const cl
