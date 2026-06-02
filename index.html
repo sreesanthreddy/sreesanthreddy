@@ -856,25 +856,58 @@ function showNarrationControls(){
   }, 800);
 }
 
-// ===== Unmute the actual video on first user interaction =====
-// The video already has walking + background sounds baked in (AAC stereo).
-// Browser autoplay policy = muted only until user does ANYTHING (mousemove, scroll, touch, key).
-// On first interaction, we unmute the video itself — natural full audio plays.
+// ===== Unmute the intro video + audio on first user interaction =====
+// Video has walking + ambient sound baked in. Browser blocks autoplay-with-sound until any gesture.
+// On first interaction we pause→unmute→seek→play (works around the mute-while-playing bug),
+// and fall back to the separate audio element if the video unmute is rejected.
 let videoUnmuted = false;
 function unmuteIntroVideo(){
   if(videoUnmuted) return;
+  videoUnmuted = true;
   const v = document.getElementById('introVideo');
+  const a = document.getElementById('introAudio');
   if(!v) return;
+  const wasTime = v.currentTime || 0;
   try{
+    v.pause();
     v.muted = false;
-    v.volume = 0.9;
+    v.volume = 1.0;
+    v.currentTime = wasTime;
     const p = v.play();
-    if(p) p.then(()=>{ videoUnmuted = true; console.log('[intro] background video unmuted — walking + ambient sounds playing'); })
-          .catch(err=>console.warn('[intro] video unmute blocked:', err.message));
+    if(p) p.then(()=>{
+      console.log('[intro] ✓ video unmuted — walking + ambient sounds playing');
+    }).catch(err=>{
+      console.warn('[intro] video unmute rejected, falling back to audio element:', err.message);
+      if(a){
+        try{
+          a.muted = false; a.volume = 1.0; a.currentTime = wasTime;
+          a.play().then(()=>console.log('[intro] ✓ audio element playing (fallback)'))
+                  .catch(e2=>console.warn('[intro] audio fallback also blocked:', e2.message));
+        }catch(e){}
+      }
+    });
   }catch(e){ console.warn('[intro] unmute fail', e); }
+  // Hide the "tap to enable sound" prompt
+  const hint = document.getElementById('soundHint');
+  if(hint) hint.style.opacity = '0', setTimeout(()=>hint.remove(),400);
 }
-['mousemove','click','touchstart','keydown','scroll','pointerdown'].forEach(ev=>{
+['mousemove','click','touchstart','keydown','scroll','pointerdown','wheel'].forEach(ev=>{
   document.addEventListener(ev, unmuteIntroVideo, {once:true, passive:true});
+});
+
+// Visible hint so user knows to interact
+window.addEventListener('DOMContentLoaded', ()=>{
+  const intro = document.getElementById('intro');
+  if(!intro) return;
+  const hint = document.createElement('div');
+  hint.id = 'soundHint';
+  hint.innerHTML = '🔊 <span style="margin-left:6px">Tap or move mouse to enable sound</span>';
+  hint.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,calc(-50% - 130px));z-index:5;padding:12px 22px;background:rgba(227,176,122,0.95);color:#0a0a0a;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,0.4);transition:opacity .4s;animation:soundHintPulse 2.2s ease-in-out infinite;cursor:pointer;white-space:nowrap';
+  const st = document.createElement('style');
+  st.textContent = '@keyframes soundHintPulse{0%,100%{box-shadow:0 8px 24px rgba(0,0,0,0.4),0 0 0 0 rgba(227,176,122,0.6)}50%{box-shadow:0 8px 24px rgba(0,0,0,0.4),0 0 0 18px rgba(227,176,122,0)}}';
+  document.head.appendChild(st);
+  hint.addEventListener('click', unmuteIntroVideo);
+  intro.appendChild(hint);
 });
 
 const intro=document.getElementById('intro'),introBtn=document.getElementById('introBtn'),introLoading=document.getElementById('introLoading');
@@ -983,35 +1016,4 @@ if(imgModal){
 const speechLines=["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","Building AI-native data platforms.","300K devices. ~83 TPS. Quiet.","Run cost: down 83%.","Governed by default.","Boring is a feature."];
 const speech=document.getElementById('speech'),robo=document.getElementById('robo');
 let li=0;
-function typeLine(text){
-  return new Promise(resolve=>{
-    speech.innerHTML='<span class="t"></span><span class="cursor"></span>';
-    const tEl=speech.querySelector('.t');
-    let i=0;
-    const iv=setInterval(()=>{
-      tEl.textContent=text.slice(0,i++);
-      if(i>text.length){clearInterval(iv); setTimeout(resolve,2500);}
-    },38);
-  });
-}
-async function speak(){
-  if(document.body.classList.contains('locked')){setTimeout(speak,800); return;}
-  if(!robo) return;
-  const r=robo.getBoundingClientRect();
-  const x=r.left+r.width/2;
-  if(x<50||x>innerWidth-50){setTimeout(speak,1200); return;}
-  speech.classList.add('show');
-  await typeLine(speechLines[li%speechLines.length]);
-  li++;
-  speech.classList.remove('show');
-  setTimeout(speak,3500);
-}
-if(speech && robo){
-  setTimeout(speak,2500);
-  robo.addEventListener('mouseenter',()=>robo.style.animationPlayState='paused');
-  robo.addEventListener('mouseleave',()=>robo.style.animationPlayState='running');
-}
-</script>
-</body>
-</html>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+function 
