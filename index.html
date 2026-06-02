@@ -828,13 +828,14 @@ if('speechSynthesis' in window){
 }
 
 // Pre-recorded Microsoft Jenny Neural voice (real sweet AI female voice, ~30 sec)
-let greetingAudio = null;
+// Created at page load + preloaded so playback starts instantly on click
+let greetingAudio = new Audio('assets/voice-greeting.mp3');
+greetingAudio.volume = 1.0;
+greetingAudio.preload = 'auto';
+greetingAudio.load();
 function sayHello(){
   try{
-    if(greetingAudio){ try{greetingAudio.pause();greetingAudio.currentTime=0;}catch(e){} }
-    greetingAudio = new Audio('assets/voice-greeting.mp3');
-    greetingAudio.volume = 1.0;
-    greetingAudio.preload = 'auto';
+    greetingAudio.currentTime = 0;
     const p = greetingAudio.play();
     if(p) p.then(()=>console.log('[voice] ✓ Jenny Neural playing'))
            .catch(err=>console.warn('[voice] playback blocked:', err.message));
@@ -960,14 +961,12 @@ introBtn.addEventListener('click',()=>{
   if(v){ try{ v.pause(); v.muted=true; }catch(e){} }
   if(a){ try{ a.pause(); a.muted=true; }catch(e){} }
 
-  // Close intro IMMEDIATELY — user lands on portfolio (which starts at Career section)
+  // Play Jenny voice IMMEDIATELY within the user gesture (no setTimeout — browser would
+  // consider the gesture expired and block autoplay)
+  sayHello();
+  showNarrationControls();
+  // Close intro
   closeIntroNow();
-
-  // After fade-out begins, start the AI voice greeting + show stop button
-  setTimeout(()=>{
-    sayHello();
-    showNarrationControls();
-  }, 800);
 });
 
 // Skip button — close intro immediately
@@ -1049,4 +1048,4 @@ if(speech && robo){ setTimeout(speak,2500); robo.addEventListener('mouseenter',(
 </script>
 </body>
 </html>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
