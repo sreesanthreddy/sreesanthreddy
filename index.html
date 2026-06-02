@@ -31,7 +31,17 @@ body.hover .cur{width:34px;height:34px;background:var(--ox)}
 .intro-meta{position:absolute;top:30px;left:30px;right:30px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(231,224,208,0.5);z-index:2}
 .intro-meta b{color:#e7e0d0;font-weight:500}
 /* Fullscreen video background for intro */
-.intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;animation:videoFadeIn 2s ease-out both;animation-delay:.2s;opacity:0;filter:contrast(1.05) saturate(1.05) brightness(0.85)}
+.intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 28%;z-index:0;animation:videoFadeIn 2s ease-out both;animation-delay:.2s;opacity:0;filter:contrast(1.05) saturate(1.05) brightness(0.85);pointer-events:none}
+@media(max-width:900px){.intro-video{object-position:center 18%}}
+@media(max-width:600px){.intro-video{object-position:center 15%}}
+/* Suppress every browser-injected overlay/control on the video */
+.intro-video::-webkit-media-controls,
+.intro-video::-webkit-media-controls-overlay-play-button,
+.intro-video::-webkit-media-controls-start-playback-button,
+.intro-video::-webkit-media-controls-panel,
+.intro-video::-webkit-media-controls-fullscreen-button,
+.intro-video::-webkit-media-controls-picture-in-picture-button,
+.intro-video::-internal-media-controls-overflow-button{display:none!important;-webkit-appearance:none!important;opacity:0!important;visibility:hidden!important}
 @keyframes videoFadeIn{0%{opacity:0;transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
 .intro.start .intro-video{animation:videoZoom 3s cubic-bezier(.2,.8,.2,1) forwards}
 @keyframes videoZoom{0%{transform:scale(1) translateY(0)}100%{transform:scale(1.12) translateY(-2%)}}
@@ -379,7 +389,10 @@ footer .container{padding:0 36px}
     <div>// portfolio · v2026.10<b style="display:block;margin-top:4px">Sreesanth Reddy Samala</b></div>
     <div style="text-align:right">// Kansas City, MO<b style="display:block;margin-top:4px">Lead AI &amp; Solutions Architect</b></div>
   </div>
-  <video class="intro-video" id="introVideo" autoplay muted loop playsinline preload="auto">
+  <video class="intro-video" id="introVideo" autoplay muted loop playsinline preload="auto"
+         disablepictureinpicture disableremoteplayback x-webkit-airplay="deny"
+         controlslist="nodownload nofullscreen noremoteplayback noplaybackrate"
+         translate="no" lang="" tabindex="-1">
     <source src="assets/opening.mp4" type="video/mp4"/>
   </video>
   <div class="intro-video-overlay"></div>
@@ -837,6 +850,4 @@ document.getElementById('imagesBtn').addEventListener('click',()=>{imgModal.clas
 document.getElementById('imgDone').addEventListener('click',()=>{imgModal.classList.remove('open');Audio.chime();});
 document.getElementById('imgClearAll').addEventListener('click',()=>{if(!confirm('Clear all uploaded images?'))return;ASSETS.forEach(clearAsset);});
 imgModal.addEventListener('click',e=>{if(e.target===imgModal)imgModal.classList.remove('open');});
-document.querySelectorAll('.img-slot[data-key]').forEach(slot=>{const key=slot.dataset.key;slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const f=input.files[0];if(!f)return;const url=await fileToDataUrl(f);saveAsset(key,url);};input.click();});slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('dragover');});slot.addEventListener('dragleave',()=>slot.classList.remove('dragover'));slot.addEventListener('drop',async e=>{e.preventDefault();slot.classList.remove('dragover');const f=e.dataTransfer.files[0];if(!f||!f.type.startsWith('image/'))return;const url=await fileToDataUrl(f);saveAsset(key,url);});const clear=slot.querySelector('.clear');if(clear)clear.addEventListener('click',e=>{e.stopPropagation();clearAsset(key);});});
-imgModal.addEventListener('dragover',e=>e.preventDefault());
-imgModal.addEventListener('drop',async e=>{e.preventDefault();const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));if(!files.length)return;const slots=Array.from(document.querySelectorAll('.img-slot[data-key]'));let i=0;for(const f 
+document.querySelectorAll('.img-slot[data-key]').forEach(slot=>{const key=slot.dataset.key;slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const f=inpu
