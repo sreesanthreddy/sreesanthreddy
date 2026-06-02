@@ -761,7 +761,25 @@ function sayHello(){try{if(!('speechSynthesis' in window))return;window.speechSy
 if('speechSynthesis' in window){window.speechSynthesis.onvoiceschanged=()=>{};window.speechSynthesis.getVoices();}
 
 const intro=document.getElementById('intro'),introBtn=document.getElementById('introBtn'),introLoading=document.getElementById('introLoading');
-introBtn.addEventListener('click',()=>{Audio.init();Audio.resume();Audio.play({freq:200,dur:0.4,vol:0.8,sweep:300});sayHello();introBtn.classList.add('hidden');introLoading.classList.add('show');setTimeout(()=>introLoading.classList.add('go'),60);intro.classList.add('start');setTimeout(()=>Audio.bigChime(),600);setTimeout(()=>{intro.classList.add('gone');document.body.classList.remove('locked');},3200);setTimeout(()=>{intro.style.display='none';},4800);});
+introBtn.addEventListener('click',()=>{
+  Audio.init();Audio.resume();
+  Audio.play({freq:200,dur:0.4,vol:0.8,sweep:300});
+  // Unmute the intro video so its audio plays (autoplay required muted until user interaction)
+  const v=document.getElementById('introVideo');
+  if(v){ try{ v.muted=false; v.volume=1.0; v.currentTime=0; v.play().catch(()=>{}); }catch(e){} }
+  // Speech synthesis disabled — video has its own audio track now
+  // sayHello();
+  introBtn.classList.add('hidden');introLoading.classList.add('show');
+  setTimeout(()=>introLoading.classList.add('go'),60);
+  intro.classList.add('start');
+  setTimeout(()=>Audio.bigChime(),600);
+  setTimeout(()=>{intro.classList.add('gone');document.body.classList.remove('locked');},3200);
+  setTimeout(()=>{
+    intro.style.display='none';
+    // After intro hides, stop video audio so it doesn't keep playing in background
+    if(v){ try{ v.pause(); v.muted=true; }catch(e){} }
+  },4800);
+});
 document.getElementById('soundBtn').addEventListener('click',()=>{Audio.on=!Audio.on;document.getElementById('soundBtn').classList.toggle('on',Audio.on);});
 
 (function(){const el=document.getElementById('kc');function t(){const d=new Date();el.innerHTML='<span class="dot" style="background:var(--ox);box-shadow:0 0 6px var(--ox)"></span>'+d.toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit',hour12:false})+' KC';}t();setInterval(t,1000);})();
@@ -801,10 +819,4 @@ const speechLines=["Solution architect building enterprise solutions, moving to 
 const speech=document.getElementById('speech'),robo=document.getElementById('robo');
 let li=0;
 function typeLine(text){return new Promise(resolve=>{speech.innerHTML='<span class="t"></span><span class="cursor"></span>';const tEl=speech.querySelector('.t');let i=0;const iv=setInterval(()=>{tEl.textContent=text.slice(0,i++);if(i>text.length){clearInterval(iv);setTimeout(resolve,2500);}},38);});}
-async function speak(){if(document.body.classList.contains('locked')){setTimeout(speak,800);return;}const r=robo.getBoundingClientRect();const x=r.left+r.width/2;if(x<50||x>innerWidth-50){setTimeout(speak,1200);return;}speech.classList.add('show');await typeLine(speechLines[li%speechLines.length]);li++;speech.classList.remove('show');setTimeout(speak,3500);}
-setTimeout(speak,2500);
-robo.addEventListener('mouseenter',()=>robo.style.animationPlayState='paused');
-robo.addEventListener('mouseleave',()=>robo.style.animationPlayState='running');
-</script>
-</body>
-</html>
+async function speak(){if(document.body.classList.contains('locked')){setTimeout(s
