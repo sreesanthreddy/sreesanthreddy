@@ -30,11 +30,11 @@ body{cursor:auto}
 .intro.gone{opacity:0;pointer-events:none;transform:scale(1.06)}
 .intro-meta{position:absolute;top:30px;left:30px;right:30px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(231,224,208,0.5);z-index:2}
 .intro-meta b{color:#e7e0d0;font-weight:500}
-/* Fullscreen video background for intro */
-.intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;z-index:0;animation:videoFadeIn 2s ease-out both;animation-delay:.2s;opacity:0;filter:contrast(1.05) saturate(1.05) brightness(0.82);pointer-events:none}
-/* Mobile: show ENTIRE video uncropped (letterbox bars are fine) */
+/* Fullscreen video background for intro — visible immediately, no fade-in dependency */
+.intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;z-index:0;opacity:1;filter:contrast(1.05) saturate(1.05) brightness(0.85);pointer-events:none;background:#000}
+/* Mobile: show ENTIRE video uncropped */
 @media(max-width:900px){
-  .intro-video{object-fit:contain !important;object-position:center center !important;background:#000 !important}
+  .intro-video{object-fit:contain;object-position:center center}
 }
 /* Suppress every browser-injected overlay/control on the video */
 .intro-video::-webkit-media-controls,
@@ -856,6 +856,28 @@ function showNarrationControls(){
   }, 800);
 }
 
+// ===== Force-start the video on page load (even if autoplay needs a nudge) =====
+(function(){
+  function tryPlayVideo(){
+    const v = document.getElementById('introVideo');
+    if(!v) return;
+    v.muted = true;  // muted autoplay is always allowed
+    v.play().then(()=>console.log('[intro] video playing (muted background)'))
+            .catch(err=>{
+              console.warn('[intro] video autoplay failed, will retry on interaction:', err.message);
+              // Try again on any user gesture
+              ['mousemove','click','touchstart','keydown','scroll'].forEach(ev=>{
+                document.addEventListener(ev, ()=>{ try{ v.play(); }catch(e){} }, {once:true, passive:true});
+              });
+            });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', tryPlayVideo);
+  } else {
+    tryPlayVideo();
+  }
+})();
+
 // ===== Unmute the intro video + audio on first user interaction =====
 // Video has walking + ambient sound baked in. Browser blocks autoplay-with-sound until any gesture.
 // On first interaction we pause→unmute→seek→play (works around the mute-while-playing bug),
@@ -1021,9 +1043,4 @@ if(imgModal){
 const speechLines=["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","Building AI-native data platforms.","300K devices. ~83 TPS. Quiet.","Run cost: down 83%.","Governed by default.","Boring is a feature."];
 const speech=document.getElementById('speech'),robo=document.getElementById('robo');
 let li=0;
-function typeLine(text){return new Promise(resolve=>{speech.innerHTML='<span class="t"></span><span class="cursor"></span>';const tEl=speech.querySelector('.t');let i=0;const iv=setInterval(()=>{tEl.textContent=text.slice(0,i++);if(i>text.length){clearInterval(iv);setTimeout(resolve,2500);}},38);});}
-async function speak(){if(document.body.classList.contains('locked')){setTimeout(speak,800);return;}if(!robo)return;const r=robo.getBoundingClientRect();const x=r.left+r.width/2;if(x<50||x>innerWidth-50){setTimeout(speak,1200);return;}speech.classList.add('show');await typeLine(speechLines[li%speechLines.length]);li++;speech.classList.remove('show');setTimeout(speak,3500);}
-if(speech && robo){setTimeout(speak,2500);robo.addEventListener('mouseenter',()=>robo.style.animationPlayState='paused');robo.addEventListener('mouseleave',()=>robo.style.animationPlayState='running');}
-</script>
-</body>
-</html>
+function typeLine(text){return new Promise(resolve=>{speech.innerHTML='<span class="t"></span><
