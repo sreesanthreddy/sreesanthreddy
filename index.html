@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>Sreesanth Reddy Samala — Lead AI & Solutions Architect</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,14 +26,16 @@ body{cursor:auto}
 .glow-warm{position:fixed;top:0;left:0;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(255,138,92,0.22),rgba(255,106,213,0.06) 50%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none;z-index:1;mix-blend-mode:screen;filter:blur(18px);will-change:transform}
 .glow-violet{position:fixed;top:0;left:0;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,0.30),transparent 65%);transform:translate(-50%,-50%);pointer-events:none;z-index:1;mix-blend-mode:screen;filter:blur(12px);will-change:transform}
 @media(max-width:900px){.glow-cyan,.glow-warm,.glow-violet{display:none}}
-.intro{position:fixed;inset:0;background:#070708;z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#e7e0d0;transition:opacity 1.4s cubic-bezier(.2,.8,.2,1),transform 1.4s cubic-bezier(.2,.8,.2,1);overflow:hidden;cursor:none;padding:30px}
+.intro{position:fixed;inset:0;background:#070708;z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;color:#e7e0d0;transition:opacity 1.4s cubic-bezier(.2,.8,.2,1),transform 1.4s cubic-bezier(.2,.8,.2,1);overflow:hidden;padding:30px 30px 18vh}
 .intro.gone{opacity:0;pointer-events:none;transform:scale(1.06)}
 .intro-meta{position:absolute;top:30px;left:30px;right:30px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(231,224,208,0.5);z-index:2}
 .intro-meta b{color:#e7e0d0;font-weight:500}
 /* Fullscreen video background for intro */
-.intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 28%;z-index:0;animation:videoFadeIn 2s ease-out both;animation-delay:.2s;opacity:0;filter:contrast(1.05) saturate(1.05) brightness(0.85);pointer-events:none}
-/* Mobile: show ENTIRE video (no crop) — letterbox is fine, full face visible */
-@media(max-width:900px){.intro-video{object-fit:contain;object-position:center center;background:#070708}}
+.intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;z-index:0;animation:videoFadeIn 2s ease-out both;animation-delay:.2s;opacity:0;filter:contrast(1.05) saturate(1.05) brightness(0.82);pointer-events:none}
+/* Mobile: show ENTIRE video uncropped (letterbox bars are fine) */
+@media(max-width:900px){
+  .intro-video{object-fit:contain !important;object-position:center center !important;background:#000 !important}
+}
 /* Suppress every browser-injected overlay/control on the video */
 .intro-video::-webkit-media-controls,
 .intro-video::-webkit-media-controls-overlay-play-button,
@@ -44,6 +49,13 @@ body{cursor:auto}
 @keyframes videoZoom{0%{transform:scale(1) translateY(0)}100%{transform:scale(1.12) translateY(-2%)}}
 .intro-video-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(7,7,8,0.55) 0%,rgba(7,7,8,0.30) 30%,rgba(7,7,8,0.40) 60%,rgba(7,7,8,0.85) 100%);pointer-events:none}
 .intro-photo-grain{position:absolute;inset:0;z-index:1;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.5'/></svg>");opacity:0.10;mix-blend-mode:overlay;animation:grainShift 0.5s steps(4) infinite}
+
+/* Top corner labels — name left, role right */
+.intro-name-tl{position:absolute;top:28px;left:28px;font-family:var(--sans);font-weight:600;font-size:15px;letter-spacing:-0.01em;color:#e7e0d0;z-index:4;text-shadow:0 2px 16px rgba(0,0,0,0.7)}
+.intro-name-tl .sub{display:block;font-family:var(--mono);font-size:10.5px;font-weight:400;letter-spacing:1.6px;text-transform:uppercase;color:rgba(231,224,208,0.6);margin-top:3px}
+.intro-role-tr{position:absolute;top:28px;right:28px;font-family:var(--sans);font-weight:600;font-size:15px;letter-spacing:-0.01em;color:#e7e0d0;z-index:4;text-align:right;text-shadow:0 2px 16px rgba(0,0,0,0.7);max-width:50%}
+.intro-role-tr .sub{display:block;font-family:var(--mono);font-size:10.5px;font-weight:400;letter-spacing:1.6px;text-transform:uppercase;color:rgba(231,224,208,0.6);margin-top:3px}
+@media(max-width:600px){.intro-name-tl,.intro-role-tr{font-size:13px}}
 @keyframes grainShift{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-2%)}75%{transform:translate(-1%,1%)}100%{transform:translate(0,0)}}
 .intro-rec{position:absolute;top:30px;right:30px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:rgba(231,224,208,0.9);z-index:3;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:2px;backdrop-filter:blur(6px);display:inline-flex;align-items:center;gap:8px;text-transform:uppercase}
 .intro-rec .rec-dot{width:8px;height:8px;border-radius:50%;background:#ff3621;box-shadow:0 0 8px #ff3621;animation:recDot 1.4s ease-in-out infinite}
@@ -382,6 +394,8 @@ footer .container{padding:0 36px}
 <body class="locked">
 
 <div class="intro" id="intro">
+  <div class="intro-name-tl">Sreesanth Reddy Samala<span class="sub">// portfolio · 2026</span></div>
+  <div class="intro-role-tr">Lead AI &amp; Solutions Architect<span class="sub">Kansas City, MO</span></div>
   <video class="intro-video" id="introVideo" autoplay muted loop playsinline preload="auto"
          disablepictureinpicture disableremoteplayback x-webkit-airplay="deny"
          controlslist="nodownload nofullscreen noremoteplayback noplaybackrate"
@@ -765,53 +779,56 @@ function sayHello(){try{if(!('speechSynthesis' in window))return;window.speechSy
 if('speechSynthesis' in window){window.speechSynthesis.onvoiceschanged=()=>{};window.speechSynthesis.getVoices();}
 
 const intro=document.getElementById('intro'),introBtn=document.getElementById('introBtn'),introLoading=document.getElementById('introLoading');
+let introClosed=false;
+function closeIntroNow(){
+  if(introClosed) return;
+  introClosed=true;
+  const v=document.getElementById('introVideo');
+  const a=document.getElementById('introAudio');
+  intro.classList.add('gone');
+  document.body.classList.remove('locked');
+  setTimeout(()=>{
+    intro.style.display='none';
+    if(v){try{v.pause();v.muted=true;}catch(e){}}
+    if(a){try{a.pause();}catch(e){}}
+  },1200);
+}
+
 introBtn.addEventListener('click',()=>{
+  console.log('[intro] Enter clicked');
   Audio.init();Audio.resume();
   Audio.play({freq:200,dur:0.4,vol:0.8,sweep:300});
   const v=document.getElementById('introVideo');
   const a=document.getElementById('introAudio');
 
-  function closeIntroNow(){
-    intro.classList.add('gone');
-    document.body.classList.remove('locked');
-    setTimeout(()=>{
-      intro.style.display='none';
-      if(v){try{v.pause();v.muted=true;}catch(e){}}
-      if(a){try{a.pause();}catch(e){}}
-    },1200);
-  }
-
-  // Restart video from frame 0, no audio (audio comes from the separate <audio> element)
-  if(v){
-    try{
-      v.pause();
-      v.loop=false;
-      v.removeAttribute('loop');
-      v.muted=true;             // keep video silent — audio plays from <audio>
-      v.currentTime=0;
-      v.play().catch(()=>{});
-    }catch(e){}
-  }
-  // Play the audio track explicitly — this works reliably after click
+  // Try to play the audio (this is the critical part — works reliably after user gesture)
   if(a){
     try{
-      a.currentTime=0;
+      a.muted=false;
       a.volume=1.0;
-      const p=a.play();
-      if(p) p.catch(err=>console.warn('audio play blocked:',err));
+      a.currentTime=0;
+      a.play().then(()=>console.log('[intro] audio playing')).catch(err=>console.warn('[intro] audio blocked:',err));
       a.addEventListener('ended', closeIntroNow, {once:true});
+    }catch(e){ console.warn('[intro] audio fail',e); }
+  }
+  // Restart video silently
+  if(v){
+    try{
+      v.pause(); v.loop=false; v.removeAttribute('loop');
+      v.muted=true; v.currentTime=0;
+      v.play().catch(()=>{});
+      v.addEventListener('ended', closeIntroNow, {once:true});
     }catch(e){}
   }
 
-  introBtn.classList.add('hidden');introLoading.classList.add('show');
+  introBtn.classList.add('hidden');
+  introLoading.classList.add('show');
   setTimeout(()=>introLoading.classList.add('go'),60);
   intro.classList.add('start');
   setTimeout(()=>Audio.bigChime(),600);
 
-  // Also close when the video ends (whichever fires first)
-  if(v){ v.addEventListener('ended', closeIntroNow, {once:true}); }
-  // Safety hard close at 17s (audio is ~15s)
-  setTimeout(()=>{ if(intro.style.display!=='none' && !intro.classList.contains('gone')) closeIntroNow(); }, 17000);
+  // Hard fallback: close intro after 16s no matter what
+  setTimeout(closeIntroNow, 16000);
 });
 
 // Skip button — close intro immediately
@@ -845,12 +862,4 @@ function tryBg(id,src){if(assetStore['ai-duality']&&(id==='dualityBg'||id==='car
 
 tryBg('dualityBg',ASSET_FILES['ai-duality']);
 tryBg('careerBg',ASSET_FILES['ai-duality']);
-Object.entries(assetStore).forEach(([k,v])=>applyAsset(k,v));
-updateImgStatus();
-
-const imgModal=document.getElementById('imgModal');
-document.getElementById('imagesBtn').addEventListener('click',()=>{imgModal.classList.add('open');});
-document.getElementById('imgDone').addEventListener('click',()=>{imgModal.classList.remove('open');Audio.chime();});
-document.getElementById('imgClearAll').addEventListener('click',()=>{if(!confirm('Clear all uploaded images?'))return;ASSETS.forEach(clearAsset);});
-imgModal.addEventListener('click',e=>{if(e.target===imgModal)imgModal.classList.remove('open');});
-document.querySelectorAll('.img-slot[data-key]').forEach(slot=>{const key=slot.dataset.key;slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const f=input.files[0];if(!f)return;const url=await fileToDataUrl(f);saveAsset(key,url);};input.click();});slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('dragover');});slot.addEventListener('dragleave',()=>slot.classList.remove('dragover'));slot.addEventListener('drop',async e=>{e.preventDefault();slot.classList.remove('dragover');const f=e.dataTransfer.files[0];if(!f||!f.type.startsWith('image/'))return;const url=await fileToDataUrl(f);saveAsset(key,url);});const cl
+Object.entries(assetStore).forEach(([k,v])=>applyAsset
