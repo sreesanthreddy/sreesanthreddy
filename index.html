@@ -862,4 +862,41 @@ function tryBg(id,src){if(assetStore['ai-duality']&&(id==='dualityBg'||id==='car
 
 tryBg('dualityBg',ASSET_FILES['ai-duality']);
 tryBg('careerBg',ASSET_FILES['ai-duality']);
-Object.entries(assetStore).forEach(([k,v])=>applyAsset
+Object.entries(assetStore).forEach(([k,v])=>applyAsset(k,v));
+updateImgStatus();
+
+const imgModal=document.getElementById('imgModal');
+if(imgModal){
+  const ib=document.getElementById('imagesBtn'); if(ib) ib.addEventListener('click',()=>{imgModal.classList.add('open');});
+  const id_=document.getElementById('imgDone'); if(id_) id_.addEventListener('click',()=>{imgModal.classList.remove('open');Audio.chime();});
+  const ic=document.getElementById('imgClearAll'); if(ic) ic.addEventListener('click',()=>{if(!confirm('Clear all uploaded images?'))return;ASSETS.forEach(clearAsset);});
+  imgModal.addEventListener('click',e=>{if(e.target===imgModal)imgModal.classList.remove('open');});
+  document.querySelectorAll('.img-slot[data-key]').forEach(slot=>{
+    const key=slot.dataset.key;
+    slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const f=input.files[0];if(!f)return;const url=await fileToDataUrl(f);saveAsset(key,url);};input.click();});
+    slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('dragover');});
+    slot.addEventListener('dragleave',()=>slot.classList.remove('dragover'));
+    slot.addEventListener('drop',async e=>{e.preventDefault();slot.classList.remove('dragover');const f=e.dataTransfer.files[0];if(!f||!f.type.startsWith('image/'))return;const url=await fileToDataUrl(f);saveAsset(key,url);});
+    const clear=slot.querySelector('.clear'); if(clear) clear.addEventListener('click',e=>{e.stopPropagation();clearAsset(key);});
+  });
+  imgModal.addEventListener('dragover',e=>e.preventDefault());
+  imgModal.addEventListener('drop',async e=>{e.preventDefault();const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));if(!files.length)return;const slots=Array.from(document.querySelectorAll('.img-slot[data-key]'));let i=0;for(const f of files){while(i<slots.length&&slots[i].classList.contains('filled'))i++;if(i>=slots.length)break;const url=await fileToDataUrl(f);saveAsset(slots[i].dataset.key,url);i++;}});
+}
+
+// (skip button already wired above)
+
+// Robot mascot speech bubbles
+const speechLines=["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","Building AI-native data platforms.","300K devices. ~83 TPS. Quiet.","Run cost: down 83%.","Governed by default.","Boring is a feature."];
+const speech=document.getElementById('speech'),robo=document.getElementById('robo');
+let li=0;
+function typeLine(text){return new Promise(resolve=>{speech.innerHTML='<span class="t"></span><span class="cursor"></span>';const tEl=speech.querySelector('.t');let i=0;const iv=setInterval(()=>{tEl.textContent=text.slice(0,i++);if(i>text.length){clearInterval(iv);setTimeout(resolve,2500);}},38);});}
+async function speak(){if(document.body.classList.contains('locked')){setTimeout(speak,800);return;}if(!robo) return;const r=robo.getBoundingClientRect();const x=r.left+r.width/2;if(x<50||x>innerWidth-50){setTimeout(speak,1200);return;}speech.classList.add('show');await typeLine(speechLines[li%speechLines.length]);li++;speech.classList.remove('show');setTimeout(speak,3500);}
+if(speech && robo){
+  setTimeout(speak,2500);
+  robo.addEventListener('mouseenter',()=>robo.style.animationPlayState='paused');
+  robo.addEventListener('mouseleave',()=>robo.style.animationPlayState='running');
+}
+</script>
+</body>
+</html>
+                                                                                                                       
