@@ -775,8 +775,94 @@ const Audio={ctx:null,gain:null,on:true,
 
 (function(){const title=document.getElementById('introTitle');if(!title)return;const text='Sreesanth Reddy Samala';const italicStart=text.indexOf('Samala');function rand(min,max){return Math.random()*(max-min)+min;}Array.from(text).forEach((c,i)=>{const span=document.createElement('span');if(c===' '){span.className='ch sp';span.innerHTML='&nbsp;';}else{span.className='ch'+(i>=italicStart?' it':'');span.textContent=c;}span.style.setProperty('--d',(i*0.04+rand(0,0.3))+'s');span.style.setProperty('--x1',rand(-300,300).toFixed(0)+'px');span.style.setProperty('--y1',rand(-260,-120).toFixed(0)+'px');span.style.setProperty('--r1',rand(-360,360).toFixed(0)+'deg');span.style.setProperty('--s1',rand(2,3.5).toFixed(2));span.style.setProperty('--x2',rand(-80,80).toFixed(0)+'px');span.style.setProperty('--y2',rand(-50,70).toFixed(0)+'px');span.style.setProperty('--r2',rand(-180,180).toFixed(0)+'deg');span.style.setProperty('--x3',rand(-50,50).toFixed(0)+'px');span.style.setProperty('--y3',rand(-40,40).toFixed(0)+'px');span.style.setProperty('--r3',rand(-90,90).toFixed(0)+'deg');span.style.setProperty('--x4',rand(-25,25).toFixed(0)+'px');span.style.setProperty('--y4',rand(-20,20).toFixed(0)+'px');span.style.setProperty('--r4',rand(-45,45).toFixed(0)+'deg');span.style.setProperty('--x5',rand(-12,12).toFixed(0)+'px');span.style.setProperty('--y5',rand(-10,10).toFixed(0)+'px');span.style.setProperty('--r5',rand(-20,20).toFixed(0)+'deg');title.appendChild(span);});})();
 
-function sayHello(){try{if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();const voices=window.speechSynthesis.getVoices();const preferred=voices.find(v=>/Microsoft.*(Aria|Jenny)|Google.*US English|Samantha|Karen|Zira/i.test(v.name)&&/en[-_]/i.test(v.lang))||voices.find(v=>/en[-_]US/i.test(v.lang))||voices[0];const lines=["Hey, how are you? Welcome to Sreesanth Reddy Samala's portfolio.","Sreesanth is a Lead AI and Solutions Architect based in Kansas City, Missouri.","He started his journey as a data engineer, building pipelines and learning how systems break in production.","From there, he trained as a data scientist, and over time, grew into the role of a Solutions Architect.","Today, he leads the architecture for real-time data platforms and the AI systems that sit on top of them.","He currently holds four senior roles in parallel.","At Squadron Data, he leads AI and Solutions Architecture, building production Cortex Code workflows and governed Cortex Agents for natural-language analytics over enterprise data.","At Securus, also known as Aventiv, he's the lead architect on a real-time device platform supporting three hundred thousand devices at eighty-three transactions per second, replacing a legacy stack at eighty-three percent lower cost.","He's also engaged at BassPro Shops and previously at MedBridge, modernizing data platforms onto Snowflake.","His stack spans Anthropic Claude, Snowflake Cortex Code, AWS, MCP servers, RAG architecture, Pulumi, and the full set of cloud certifications.","He's open to staff or principal architect roles, advisory engagements, or interesting platform problems.","Take your time exploring his career, approach, the eight practices he's hired for, his projects, and his stack.","Thanks for visiting."];lines.forEach((text,i)=>{const u=new SpeechSynthesisUtterance(text);u.rate=0.96;u.pitch=1.08;u.volume=1.0;if(preferred)u.voice=preferred;setTimeout(()=>window.speechSynthesis.speak(u),i*60);});}catch(e){console.warn(e);}}
-if('speechSynthesis' in window){window.speechSynthesis.onvoiceschanged=()=>{};window.speechSynthesis.getVoices();}
+// ===== Realistic AI voice — best available "natural/neural" voice =====
+let cachedVoice = null;
+function pickRealisticVoice(){
+  if(cachedVoice) return cachedVoice;
+  if(!('speechSynthesis' in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if(!voices.length) return null;
+  // Priority order: Neural/Natural voices first (highest quality), then known good ones
+  const tiers = [
+    /Microsoft.*(Aria|Jenny|Guy|Davis|Sara|Nancy|Tony|Amber).*Neural/i,
+    /Microsoft.*(Aria|Jenny|Guy|Davis|Sara|Nancy|Tony|Amber).*Online/i,
+    /Microsoft.*Natural/i,
+    /Google.*US English/i,
+    /Samantha/i, /Karen/i, /Moira/i, /Tessa/i,
+    /Microsoft.*(Aria|Jenny|Zira|Mark)/i,
+    /Google US English/i,
+    /en[-_]US/i, /en[-_]GB/i, /en/i
+  ];
+  for(const rx of tiers){
+    const v = voices.find(v => rx.test(v.name) && /^en/i.test(v.lang));
+    if(v) { console.log('[voice] picked:', v.name, v.lang); cachedVoice = v; return v; }
+  }
+  cachedVoice = voices[0]; return cachedVoice;
+}
+if('speechSynthesis' in window){
+  window.speechSynthesis.onvoiceschanged = ()=>{ cachedVoice = null; pickRealisticVoice(); };
+  setTimeout(pickRealisticVoice, 100);
+  setTimeout(pickRealisticVoice, 500);
+  setTimeout(pickRealisticVoice, 1500);
+}
+
+function sayHello(){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const voice = pickRealisticVoice();
+    const lines = [
+      "Hey there, how are you doing today?",
+      "Welcome to Sreesanth Reddy Samala's portfolio.",
+      "Sreesanth is a Lead AI and Solutions Architect, based in Kansas City, Missouri.",
+      "He started his journey as a data engineer, building pipelines and learning how systems break in production.",
+      "From there, he trained as a data scientist, and over time, grew into the role of a Solutions Architect.",
+      "Today, he leads the architecture for real-time data platforms, and the AI systems that sit on top of them.",
+      "He currently holds four senior roles in parallel.",
+      "At Squadron Data, he leads AI and Solutions Architecture, building production Cortex Code workflows, and governed Cortex Agents for natural-language analytics over enterprise data.",
+      "At Securus, also known as Aventiv, he is the lead architect on a real-time device platform, supporting three hundred thousand devices at eighty-three transactions per second.",
+      "He's also engaged at BassPro Shops, and previously at MedBridge, modernizing data platforms onto Snowflake.",
+      "His stack spans Anthropic Claude, Snowflake Cortex Code, AWS, MCP servers, RAG architecture, and the full set of cloud certifications.",
+      "He's open to staff or principal architect roles, advisory engagements, or interesting platform problems.",
+      "Take your time, explore his work, and reach out if something resonates.",
+      "Thanks for visiting."
+    ];
+    lines.forEach((text, i) => {
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.94;          // slightly slower = more natural
+      u.pitch = 1.05;         // slight warmth
+      u.volume = 1.0;
+      if(voice) u.voice = voice;
+      // Stagger with natural pauses between sentences (~250ms gap)
+      setTimeout(() => window.speechSynthesis.speak(u), i * 120);
+    });
+  } catch(e){ console.warn('[voice] failed', e); }
+}
+
+// ===== Auto-play video audio on FIRST user interaction (before Enter click) =====
+// Browsers block audio autoplay until any user gesture. Any mousemove/scroll/touch
+// counts — we use that to start the audio synced to the video.
+let videoAudioStarted = false;
+function startVideoAudioSynced(){
+  if(videoAudioStarted) return;
+  const v = document.getElementById('introVideo');
+  const a = document.getElementById('introAudio');
+  if(!v || !a) return;
+  try{
+    a.muted = false;
+    a.volume = 0.85;
+    a.currentTime = v.currentTime || 0;   // sync to wherever video currently is
+    const p = a.play();
+    if(p) p.then(()=>{
+      videoAudioStarted = true;
+      console.log('[intro] background audio playing (synced)');
+    }).catch(err=>console.warn('[intro] bg audio blocked:', err.message));
+  }catch(e){ console.warn('[intro] bg audio err', e); }
+}
+// First-interaction handlers — multiple types so any gesture works
+['mousemove','click','touchstart','keydown','scroll','pointerdown'].forEach(ev=>{
+  document.addEventListener(ev, startVideoAudioSynced, {once:true, passive:true});
+});
 
 const intro=document.getElementById('intro'),introBtn=document.getElementById('introBtn'),introLoading=document.getElementById('introLoading');
 let introClosed=false;
@@ -801,34 +887,53 @@ introBtn.addEventListener('click',()=>{
   const v=document.getElementById('introVideo');
   const a=document.getElementById('introAudio');
 
-  // Try to play the audio (this is the critical part — works reliably after user gesture)
+  // Fade out the background video audio so the AI voice can be heard clearly
   if(a){
     try{
-      a.muted=false;
-      a.volume=1.0;
-      a.currentTime=0;
-      a.play().then(()=>console.log('[intro] audio playing')).catch(err=>console.warn('[intro] audio blocked:',err));
-      a.addEventListener('ended', closeIntroNow, {once:true});
-    }catch(e){ console.warn('[intro] audio fail',e); }
-  }
-  // Restart video silently
-  if(v){
-    try{
-      v.pause(); v.loop=false; v.removeAttribute('loop');
-      v.muted=true; v.currentTime=0;
-      v.play().catch(()=>{});
-      v.addEventListener('ended', closeIntroNow, {once:true});
+      const startVol = a.volume || 0.85;
+      let step = 0;
+      const fade = setInterval(()=>{
+        step++;
+        a.volume = Math.max(0, startVol - step*0.1);
+        if(a.volume <= 0.01){ clearInterval(fade); try{a.pause();}catch(e){} }
+      }, 80);
     }catch(e){}
   }
+
+  // Keep video playing as visual atmosphere (muted)
+  if(v){
+    try{
+      v.loop = true;        // keep looping silently as backdrop
+      v.muted = true;
+      v.play().catch(()=>{});
+    }catch(e){}
+  }
+
+  // After a brief moment, kick off the AI voice greeting
+  setTimeout(()=>{
+    sayHello();
+    Audio.bigChime();
+  }, 700);
 
   introBtn.classList.add('hidden');
   introLoading.classList.add('show');
   setTimeout(()=>introLoading.classList.add('go'),60);
   intro.classList.add('start');
-  setTimeout(()=>Audio.bigChime(),600);
 
-  // Hard fallback: close intro after 16s no matter what
-  setTimeout(closeIntroNow, 16000);
+  // After the voice greeting (~50-60s), fade out the intro automatically
+  // We monitor speechSynthesis — when it goes quiet for 2s straight, we close.
+  let lastSpoke = Date.now();
+  const watchSpeech = setInterval(()=>{
+    if(window.speechSynthesis && window.speechSynthesis.speaking){
+      lastSpoke = Date.now();
+    } else if(Date.now() - lastSpoke > 2000 && Date.now() - lastSpoke < 70000){
+      clearInterval(watchSpeech);
+      closeIntroNow();
+    }
+  }, 500);
+
+  // Absolute hard fallback at 75s
+  setTimeout(()=>{ clearInterval(watchSpeech); closeIntroNow(); }, 75000);
 });
 
 // Skip button — close intro immediately
@@ -873,30 +978,4 @@ if(imgModal){
   imgModal.addEventListener('click',e=>{if(e.target===imgModal)imgModal.classList.remove('open');});
   document.querySelectorAll('.img-slot[data-key]').forEach(slot=>{
     const key=slot.dataset.key;
-    slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const f=input.files[0];if(!f)return;const url=await fileToDataUrl(f);saveAsset(key,url);};input.click();});
-    slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('dragover');});
-    slot.addEventListener('dragleave',()=>slot.classList.remove('dragover'));
-    slot.addEventListener('drop',async e=>{e.preventDefault();slot.classList.remove('dragover');const f=e.dataTransfer.files[0];if(!f||!f.type.startsWith('image/'))return;const url=await fileToDataUrl(f);saveAsset(key,url);});
-    const clear=slot.querySelector('.clear'); if(clear) clear.addEventListener('click',e=>{e.stopPropagation();clearAsset(key);});
-  });
-  imgModal.addEventListener('dragover',e=>e.preventDefault());
-  imgModal.addEventListener('drop',async e=>{e.preventDefault();const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));if(!files.length)return;const slots=Array.from(document.querySelectorAll('.img-slot[data-key]'));let i=0;for(const f of files){while(i<slots.length&&slots[i].classList.contains('filled'))i++;if(i>=slots.length)break;const url=await fileToDataUrl(f);saveAsset(slots[i].dataset.key,url);i++;}});
-}
-
-// (skip button already wired above)
-
-// Robot mascot speech bubbles
-const speechLines=["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","Building AI-native data platforms.","300K devices. ~83 TPS. Quiet.","Run cost: down 83%.","Governed by default.","Boring is a feature."];
-const speech=document.getElementById('speech'),robo=document.getElementById('robo');
-let li=0;
-function typeLine(text){return new Promise(resolve=>{speech.innerHTML='<span class="t"></span><span class="cursor"></span>';const tEl=speech.querySelector('.t');let i=0;const iv=setInterval(()=>{tEl.textContent=text.slice(0,i++);if(i>text.length){clearInterval(iv);setTimeout(resolve,2500);}},38);});}
-async function speak(){if(document.body.classList.contains('locked')){setTimeout(speak,800);return;}if(!robo) return;const r=robo.getBoundingClientRect();const x=r.left+r.width/2;if(x<50||x>innerWidth-50){setTimeout(speak,1200);return;}speech.classList.add('show');await typeLine(speechLines[li%speechLines.length]);li++;speech.classList.remove('show');setTimeout(speak,3500);}
-if(speech && robo){
-  setTimeout(speak,2500);
-  robo.addEventListener('mouseenter',()=>robo.style.animationPlayState='paused');
-  robo.addEventListener('mouseleave',()=>robo.style.animationPlayState='running');
-}
-</script>
-</body>
-</html>
-                                                                                                                       
+    slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=doc
