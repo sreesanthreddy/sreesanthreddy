@@ -955,20 +955,24 @@ if(skipBtn) skipBtn.addEventListener('click',()=>{
   document.body.classList.remove('locked');
   setTimeout(()=>{ intro.style.display='none'; if(v){try{v.pause();v.muted=true;}catch(e){}} },1200);
 });
+
 document.getElementById('soundBtn').addEventListener('click',()=>{Audio.on=!Audio.on;document.getElementById('soundBtn').classList.toggle('on',Audio.on);});
 
 (function(){const el=document.getElementById('kc');function t(){const d=new Date();el.innerHTML='<span class="dot" style="background:var(--ox);box-shadow:0 0 6px var(--ox)"></span>'+d.toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit',hour12:false})+' KC';}t();setInterval(t,1000);})();
 
-document.querySelectorAll('a, .nv, .ctl, .proj, .princ, .cl, .wid-card, .lg, .fact, .crow, .img-slot').forEach(el=>{el.addEventListener('mouseenter',()=>document.body.classList.add('hover'));el.addEventListener('mouseleave',()=>document.body.classList.remove('hover'));});
+document.querySelectorAll('a, .nv, .ctl, .proj, .princ, .cl, .wid-card, .lg, .fact, .crow, .img-slot, .stack-card').forEach(el=>{el.addEventListener('mouseenter',()=>document.body.classList.add('hover'));el.addEventListener('mouseleave',()=>document.body.classList.remove('hover'));});
+
 document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();const t=document.getElementById(el.dataset.go);if(!t)return;scrollTo({top:t.offsetTop-30,behavior:'smooth'});}));
 
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:0.14});
 document.querySelectorAll('.rev').forEach(el=>io.observe(el));
 
+// SCROLL-only vibration tick
 (function(){let lastTickAt=0;let lastY=scrollY;const MIN_INTERVAL=90;const MIN_DELTA=25;let accum=0;window.addEventListener('scroll',()=>{const y=scrollY;const dy=Math.abs(y-lastY);lastY=y;accum+=dy;const now=performance.now();if(accum>=MIN_DELTA&&(now-lastTickAt)>=MIN_INTERVAL&&Audio.on){const baseFreq=70+Math.random()*30;Audio.play({freq:baseFreq,dur:0.05,type:'triangle',vol:0.35,sweep:-20});if(Math.random()<0.3)Audio.play({freq:520+Math.random()*200,dur:0.025,type:'sine',vol:0.18});lastTickAt=now;accum=0;}},{passive:true});})();
 
 document.querySelectorAll('.cl').forEach(cl=>cl.addEventListener('click',()=>Audio.chime()));
 
+// Asset manager
 function applyAsset(key,dataUrl){document.querySelectorAll('img[data-asset="'+key+'"]').forEach(img=>{img.src=dataUrl;const p=img.parentElement;if(p){p.classList.remove('missing');img.style.display='';}});if(key==='ai-duality'){['dualityBg','careerBg'].forEach(id=>{const el=document.getElementById(id);if(el){el.style.backgroundImage='url("'+dataUrl+'")';el.classList.remove('missing');}});}const slot=document.querySelector('.img-slot[data-key="'+key+'"]');if(slot){let preview=slot.querySelector('img');if(!preview){preview=document.createElement('img');slot.insertBefore(preview,slot.querySelector('.ph'));}preview.src=dataUrl;slot.classList.add('filled');}}
 function clearAsset(key){delete assetStore[key];localStorage.setItem(STORE_KEY,JSON.stringify(assetStore));document.querySelectorAll('img[data-asset="'+key+'"]').forEach(img=>{img.src=ASSET_FILES[key];});const slot=document.querySelector('.img-slot[data-key="'+key+'"]');if(slot){const preview=slot.querySelector('img');if(preview)preview.remove();slot.classList.remove('filled');}updateImgStatus();}
 function saveAsset(key,dataUrl){try{assetStore[key]=dataUrl;localStorage.setItem(STORE_KEY,JSON.stringify(assetStore));}catch(e){alert('Image too large.');return false;}applyAsset(key,dataUrl);updateImgStatus();return true;}
@@ -981,6 +985,7 @@ tryBg('careerBg',ASSET_FILES['ai-duality']);
 Object.entries(assetStore).forEach(([k,v])=>applyAsset(k,v));
 updateImgStatus();
 
+// Image modal
 const imgModal=document.getElementById('imgModal');
 if(imgModal){
   const ib=document.getElementById('imagesBtn'); if(ib) ib.addEventListener('click',()=>{imgModal.classList.add('open');});
@@ -1016,4 +1021,9 @@ if(imgModal){
 const speechLines=["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","Building AI-native data platforms.","300K devices. ~83 TPS. Quiet.","Run cost: down 83%.","Governed by default.","Boring is a feature."];
 const speech=document.getElementById('speech'),robo=document.getElementById('robo');
 let li=0;
-function 
+function typeLine(text){return new Promise(resolve=>{speech.innerHTML='<span class="t"></span><span class="cursor"></span>';const tEl=speech.querySelector('.t');let i=0;const iv=setInterval(()=>{tEl.textContent=text.slice(0,i++);if(i>text.length){clearInterval(iv);setTimeout(resolve,2500);}},38);});}
+async function speak(){if(document.body.classList.contains('locked')){setTimeout(speak,800);return;}if(!robo)return;const r=robo.getBoundingClientRect();const x=r.left+r.width/2;if(x<50||x>innerWidth-50){setTimeout(speak,1200);return;}speech.classList.add('show');await typeLine(speechLines[li%speechLines.length]);li++;speech.classList.remove('show');setTimeout(speak,3500);}
+if(speech && robo){setTimeout(speak,2500);robo.addEventListener('mouseenter',()=>robo.style.animationPlayState='paused');robo.addEventListener('mouseleave',()=>robo.style.animationPlayState='running');}
+</script>
+</body>
+</html>
