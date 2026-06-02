@@ -775,22 +775,24 @@ const Audio={ctx:null,gain:null,on:true,
 
 (function(){const title=document.getElementById('introTitle');if(!title)return;const text='Sreesanth Reddy Samala';const italicStart=text.indexOf('Samala');function rand(min,max){return Math.random()*(max-min)+min;}Array.from(text).forEach((c,i)=>{const span=document.createElement('span');if(c===' '){span.className='ch sp';span.innerHTML='&nbsp;';}else{span.className='ch'+(i>=italicStart?' it':'');span.textContent=c;}span.style.setProperty('--d',(i*0.04+rand(0,0.3))+'s');span.style.setProperty('--x1',rand(-300,300).toFixed(0)+'px');span.style.setProperty('--y1',rand(-260,-120).toFixed(0)+'px');span.style.setProperty('--r1',rand(-360,360).toFixed(0)+'deg');span.style.setProperty('--s1',rand(2,3.5).toFixed(2));span.style.setProperty('--x2',rand(-80,80).toFixed(0)+'px');span.style.setProperty('--y2',rand(-50,70).toFixed(0)+'px');span.style.setProperty('--r2',rand(-180,180).toFixed(0)+'deg');span.style.setProperty('--x3',rand(-50,50).toFixed(0)+'px');span.style.setProperty('--y3',rand(-40,40).toFixed(0)+'px');span.style.setProperty('--r3',rand(-90,90).toFixed(0)+'deg');span.style.setProperty('--x4',rand(-25,25).toFixed(0)+'px');span.style.setProperty('--y4',rand(-20,20).toFixed(0)+'px');span.style.setProperty('--r4',rand(-45,45).toFixed(0)+'deg');span.style.setProperty('--x5',rand(-12,12).toFixed(0)+'px');span.style.setProperty('--y5',rand(-10,10).toFixed(0)+'px');span.style.setProperty('--r5',rand(-20,20).toFixed(0)+'deg');title.appendChild(span);});})();
 
-// ===== Realistic AI voice — best available "natural/neural" voice =====
+// ===== Jenny voice (Microsoft Jenny Neural / Online preferred) =====
 let cachedVoice = null;
 function pickRealisticVoice(){
   if(cachedVoice) return cachedVoice;
   if(!('speechSynthesis' in window)) return null;
   const voices = window.speechSynthesis.getVoices();
   if(!voices.length) return null;
-  // Priority order: Neural/Natural voices first (highest quality), then known good ones
+  // Prefer Jenny specifically, then other natural/neural voices
   const tiers = [
-    /Microsoft.*(Aria|Jenny|Guy|Davis|Sara|Nancy|Tony|Amber).*Neural/i,
-    /Microsoft.*(Aria|Jenny|Guy|Davis|Sara|Nancy|Tony|Amber).*Online/i,
-    /Microsoft.*Natural/i,
+    /Microsoft Jenny.*Neural/i,
+    /Microsoft Jenny.*Online/i,
+    /Microsoft Jenny/i,
+    /Jenny/i,
+    /Microsoft.*(Aria|Sara|Nancy|Amber).*Neural/i,
+    /Microsoft.*(Aria|Sara|Nancy|Amber).*Online/i,
+    /Microsoft.*Aria/i,
+    /Samantha/i, /Karen/i,
     /Google.*US English/i,
-    /Samantha/i, /Karen/i, /Moira/i, /Tessa/i,
-    /Microsoft.*(Aria|Jenny|Zira|Mark)/i,
-    /Google US English/i,
     /en[-_]US/i, /en[-_]GB/i, /en/i
   ];
   for(const rx of tiers){
@@ -811,57 +813,68 @@ function sayHello(){
     if(!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const voice = pickRealisticVoice();
+    // Shorter, focused greeting — user-approved script
     const lines = [
-      "Hey there, how are you doing today?",
-      "Welcome to Sreesanth Reddy Samala's portfolio.",
-      "Sreesanth is a Lead AI and Solutions Architect, based in Kansas City, Missouri.",
-      "He started his journey as a data engineer, building pipelines and learning how systems break in production.",
-      "From there, he trained as a data scientist, and over time, grew into the role of a Solutions Architect.",
-      "Today, he leads the architecture for real-time data platforms, and the AI systems that sit on top of them.",
-      "He currently holds four senior roles in parallel.",
-      "At Squadron Data, he leads AI and Solutions Architecture, building production Cortex Code workflows, and governed Cortex Agents for natural-language analytics over enterprise data.",
-      "At Securus, also known as Aventiv, he is the lead architect on a real-time device platform, supporting three hundred thousand devices at eighty-three transactions per second.",
-      "He's also engaged at BassPro Shops, and previously at MedBridge, modernizing data platforms onto Snowflake.",
-      "His stack spans Anthropic Claude, Snowflake Cortex Code, AWS, MCP servers, RAG architecture, and the full set of cloud certifications.",
-      "He's open to staff or principal architect roles, advisory engagements, or interesting platform problems.",
-      "Take your time, explore his work, and reach out if something resonates.",
-      "Thanks for visiting."
+      "Hey, how are you? Welcome to Sreesanth Reddy Samala's portfolio.",
+      "He's a Lead AI and Solutions Architect.",
+      "He started his journey as a data engineer, and now leads architecture for real-time data platforms, the Agentic Enterprise, and AI systems on top.",
+      "Take your time, and scroll down to explore his career, approach, practices, projects, and stack.",
+      "Sreesanth says, thanks for visiting."
     ];
     lines.forEach((text, i) => {
       const u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.94;          // slightly slower = more natural
-      u.pitch = 1.05;         // slight warmth
-      u.volume = 1.0;
+      u.rate = 0.95; u.pitch = 1.05; u.volume = 1.0;
       if(voice) u.voice = voice;
-      // Stagger with natural pauses between sentences (~250ms gap)
-      setTimeout(() => window.speechSynthesis.speak(u), i * 120);
+      setTimeout(() => window.speechSynthesis.speak(u), i * 150);
     });
   } catch(e){ console.warn('[voice] failed', e); }
 }
 
-// ===== Auto-play video audio on FIRST user interaction (before Enter click) =====
-// Browsers block audio autoplay until any user gesture. Any mousemove/scroll/touch
-// counts — we use that to start the audio synced to the video.
-let videoAudioStarted = false;
-function startVideoAudioSynced(){
-  if(videoAudioStarted) return;
-  const v = document.getElementById('introVideo');
-  const a = document.getElementById('introAudio');
-  if(!v || !a) return;
-  try{
-    a.muted = false;
-    a.volume = 0.85;
-    a.currentTime = v.currentTime || 0;   // sync to wherever video currently is
-    const p = a.play();
-    if(p) p.then(()=>{
-      videoAudioStarted = true;
-      console.log('[intro] background audio playing (synced)');
-    }).catch(err=>console.warn('[intro] bg audio blocked:', err.message));
-  }catch(e){ console.warn('[intro] bg audio err', e); }
+// Floating "stop narration" button — visible while AI voice is speaking
+function showNarrationControls(){
+  if(document.getElementById('skipNar')) return;
+  const btn = document.createElement('button');
+  btn.id = 'skipNar';
+  btn.innerHTML = '🔇 Stop narration';
+  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9500;padding:14px 22px;background:#e3b07a;color:#0a0a0a;border:none;border-radius:999px;font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.35);transition:all .2s;animation:narFadeIn .5s ease both';
+  const style = document.createElement('style');
+  style.textContent = '@keyframes narFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}#skipNar:hover{filter:brightness(1.08);transform:translateY(-2px)}';
+  document.head.appendChild(style);
+  btn.addEventListener('click', () => {
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    btn.style.animation = 'narFadeIn .3s ease reverse forwards';
+    setTimeout(()=>btn.remove(), 350);
+  });
+  document.body.appendChild(btn);
+  // Auto-remove when speech ends naturally
+  const watch = setInterval(() => {
+    const sp = window.speechSynthesis;
+    if(!sp || (!sp.speaking && !sp.pending)){
+      clearInterval(watch);
+      setTimeout(()=>{ if(btn.parentNode) btn.remove(); }, 800);
+    }
+  }, 800);
 }
-// First-interaction handlers — multiple types so any gesture works
+
+// ===== Unmute the actual video on first user interaction =====
+// The video already has walking + background sounds baked in (AAC stereo).
+// Browser autoplay policy = muted only until user does ANYTHING (mousemove, scroll, touch, key).
+// On first interaction, we unmute the video itself — natural full audio plays.
+let videoUnmuted = false;
+function unmuteIntroVideo(){
+  if(videoUnmuted) return;
+  const v = document.getElementById('introVideo');
+  if(!v) return;
+  try{
+    v.muted = false;
+    v.volume = 0.9;
+    const p = v.play();
+    if(p) p.then(()=>{ videoUnmuted = true; console.log('[intro] background video unmuted — walking + ambient sounds playing'); })
+          .catch(err=>console.warn('[intro] video unmute blocked:', err.message));
+  }catch(e){ console.warn('[intro] unmute fail', e); }
+}
 ['mousemove','click','touchstart','keydown','scroll','pointerdown'].forEach(ev=>{
-  document.addEventListener(ev, startVideoAudioSynced, {once:true, passive:true});
+  document.addEventListener(ev, unmuteIntroVideo, {once:true, passive:true});
 });
 
 const intro=document.getElementById('intro'),introBtn=document.getElementById('introBtn'),introLoading=document.getElementById('introLoading');
@@ -881,59 +894,24 @@ function closeIntroNow(){
 }
 
 introBtn.addEventListener('click',()=>{
-  console.log('[intro] Enter clicked');
+  console.log('[intro] Enter clicked → instant portfolio reveal');
   Audio.init();Audio.resume();
   Audio.play({freq:200,dur:0.4,vol:0.8,sweep:300});
+
+  // Pause + mute the intro video — about to talk over it
   const v=document.getElementById('introVideo');
   const a=document.getElementById('introAudio');
+  if(v){ try{ v.pause(); v.muted=true; }catch(e){} }
+  if(a){ try{ a.pause(); a.muted=true; }catch(e){} }
 
-  // Fade out the background video audio so the AI voice can be heard clearly
-  if(a){
-    try{
-      const startVol = a.volume || 0.85;
-      let step = 0;
-      const fade = setInterval(()=>{
-        step++;
-        a.volume = Math.max(0, startVol - step*0.1);
-        if(a.volume <= 0.01){ clearInterval(fade); try{a.pause();}catch(e){} }
-      }, 80);
-    }catch(e){}
-  }
+  // Close intro IMMEDIATELY — user lands on portfolio (which starts at Career section)
+  closeIntroNow();
 
-  // Keep video playing as visual atmosphere (muted)
-  if(v){
-    try{
-      v.loop = true;        // keep looping silently as backdrop
-      v.muted = true;
-      v.play().catch(()=>{});
-    }catch(e){}
-  }
-
-  // After a brief moment, kick off the AI voice greeting
+  // After fade-out begins, start the AI voice greeting + show stop button
   setTimeout(()=>{
     sayHello();
-    Audio.bigChime();
-  }, 700);
-
-  introBtn.classList.add('hidden');
-  introLoading.classList.add('show');
-  setTimeout(()=>introLoading.classList.add('go'),60);
-  intro.classList.add('start');
-
-  // After the voice greeting (~50-60s), fade out the intro automatically
-  // We monitor speechSynthesis — when it goes quiet for 2s straight, we close.
-  let lastSpoke = Date.now();
-  const watchSpeech = setInterval(()=>{
-    if(window.speechSynthesis && window.speechSynthesis.speaking){
-      lastSpoke = Date.now();
-    } else if(Date.now() - lastSpoke > 2000 && Date.now() - lastSpoke < 70000){
-      clearInterval(watchSpeech);
-      closeIntroNow();
-    }
-  }, 500);
-
-  // Absolute hard fallback at 75s
-  setTimeout(()=>{ clearInterval(watchSpeech); closeIntroNow(); }, 75000);
+    showNarrationControls();
+  }, 800);
 });
 
 // Skip button — close intro immediately
@@ -1036,3 +1014,4 @@ if(speech && robo){
 </script>
 </body>
 </html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
