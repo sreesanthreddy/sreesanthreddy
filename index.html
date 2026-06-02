@@ -343,6 +343,13 @@ body{cursor:auto}
 @media(max-width:800px){.contact-row{grid-template-columns:1fr;gap:30px}}
 .contact-row .lead{color:var(--ink-2);font-size:18px;line-height:1.6;max-width:520px}
 .contact-row .lead b{color:var(--ink);font-weight:500}
+.contact-left{display:flex;flex-direction:column;gap:30px}
+.contact-photo{position:relative;width:100%;max-width:480px;aspect-ratio:4/5;background:var(--ink);border:1px solid var(--rule-2);border-radius:4px;overflow:hidden;box-shadow:0 30px 60px rgba(23,21,19,0.25)}
+.contact-photo img{width:100%;height:100%;object-fit:cover;filter:contrast(1.05) saturate(1.02)}
+.contact-photo-stamp{position:absolute;left:0;right:0;bottom:0;padding:18px 22px;background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(10,10,10,0.6) 40%,rgba(10,10,10,0.85) 100%);color:var(--paper);display:flex;align-items:center;gap:14px}
+.contact-photo-stamp .ln{display:block;width:30px;height:1px;background:rgba(240,235,224,0.6);flex-shrink:0}
+.contact-photo-stamp .nm{font-family:var(--sans);font-weight:600;font-size:18px;letter-spacing:-0.015em;color:#fff}
+.contact-photo-stamp .rl{font-family:var(--mono);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(240,235,224,0.7);margin-top:3px}
 .contact-links{display:flex;flex-direction:column;gap:1px;background:var(--rule);border:1px solid var(--rule)}
 .cl{display:flex;justify-content:space-between;align-items:center;padding:22px 24px;background:var(--paper);transition:all .3s}
 .cl:hover{background:var(--paper-2);padding-left:32px}
@@ -714,7 +721,19 @@ footer .container{padding:0 36px}
   <div class="cap rev"><span class="ln"></span><b>09</b> · Let's build</div>
   <h2 class="rev">Build the <span class="it">platform</span><br/>you'll <span class="ox">run for a decade.</span></h2>
   <div class="contact-row rev">
-    <p class="lead">Snowflake-native, AWS-native, Anthropic-powered. Open to <b>staff / principal architect</b> roles, advisory, or interesting platform problems. Replies usually within a few hours, Kansas City time.</p>
+    <div class="contact-left">
+      <div class="contact-photo rev">
+        <img src="assets/contact-photo.png" alt="Sreesanth Reddy Samala" loading="lazy"/>
+        <div class="contact-photo-stamp">
+          <span class="ln"></span>
+          <div>
+            <div class="nm">Sreesanth Reddy Samala</div>
+            <div class="rl">Lead AI &amp; Solutions Architect</div>
+          </div>
+        </div>
+      </div>
+      <p class="lead">Snowflake-native, AWS-native, Anthropic-powered. Open to <b>staff / principal architect</b> roles, advisory, or interesting platform problems. Replies usually within a few hours, Kansas City time.</p>
+    </div>
     <div class="contact-links">
       <a class="cl" href="mailto:sreesanthreddy9@gmail.com"><span><span class="k">Email</span><span class="v">sreesanthreddy9@gmail.com</span></span><span class="arr">↗</span></a>
       <a class="cl" href="tel:+18166480127"><span><span class="k">Phone</span><span class="v">+1 816-648-0127</span></span><span class="arr">↗</span></a>
@@ -808,25 +827,17 @@ if('speechSynthesis' in window){
   setTimeout(pickRealisticVoice, 1500);
 }
 
+// Pre-recorded Microsoft Jenny Neural voice (real sweet AI female voice, ~30 sec)
+let greetingAudio = null;
 function sayHello(){
   try{
-    if(!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const voice = pickRealisticVoice();
-    // Shorter, focused greeting — user-approved script
-    const lines = [
-      "Hey, how are you? Welcome to Sreesanth Reddy Samala's portfolio.",
-      "He's a Lead AI and Solutions Architect.",
-      "He started his journey as a data engineer, and now leads architecture for real-time data platforms, the Agentic Enterprise, and AI systems on top.",
-      "Take your time, and scroll down to explore his career, approach, practices, projects, and stack.",
-      "Sreesanth says, thanks for visiting."
-    ];
-    lines.forEach((text, i) => {
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.95; u.pitch = 1.05; u.volume = 1.0;
-      if(voice) u.voice = voice;
-      setTimeout(() => window.speechSynthesis.speak(u), i * 150);
-    });
+    if(greetingAudio){ try{greetingAudio.pause();greetingAudio.currentTime=0;}catch(e){} }
+    greetingAudio = new Audio('assets/voice-greeting.mp3');
+    greetingAudio.volume = 1.0;
+    greetingAudio.preload = 'auto';
+    const p = greetingAudio.play();
+    if(p) p.then(()=>console.log('[voice] ✓ Jenny Neural playing'))
+           .catch(err=>console.warn('[voice] playback blocked:', err.message));
   } catch(e){ console.warn('[voice] failed', e); }
 }
 
@@ -842,14 +853,16 @@ function showNarrationControls(){
   document.head.appendChild(style);
   btn.addEventListener('click', () => {
     try{ window.speechSynthesis.cancel(); }catch(e){}
+    try{ if(greetingAudio){greetingAudio.pause();greetingAudio.currentTime=0;} }catch(e){}
     btn.style.animation = 'narFadeIn .3s ease reverse forwards';
     setTimeout(()=>btn.remove(), 350);
   });
   document.body.appendChild(btn);
   // Auto-remove when speech ends naturally
   const watch = setInterval(() => {
-    const sp = window.speechSynthesis;
-    if(!sp || (!sp.speaking && !sp.pending)){
+    const speechDone = !window.speechSynthesis || (!window.speechSynthesis.speaking && !window.speechSynthesis.pending);
+    const audioDone = !greetingAudio || greetingAudio.ended || greetingAudio.paused;
+    if(speechDone && audioDone){
       clearInterval(watch);
       setTimeout(()=>{ if(btn.parentNode) btn.remove(); }, 800);
     }
@@ -1040,39 +1053,4 @@ if(imgModal){
 }
 
 // Robot mascot speech bubbles
-const speechLines = ["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","Building AI-native data platforms.","300K devices. ~83 TPS. Quiet."];
-const speech = document.getElementById('speech');
-const robo = document.getElementById('robo');
-let li = 0;
-function typeLine(text) {
-  return new Promise(resolve => {
-    if (!speech) { resolve(); return; }
-    speech.innerHTML = '<span class="t"></span><span class="cursor"></span>';
-    const tEl = speech.querySelector('.t');
-    let i = 0;
-    const iv = setInterval(() => {
-      tEl.textContent = text.slice(0, i++);
-      if (i > text.length) { clearInterval(iv); setTimeout(resolve, 2500); }
-    }, 38);
-  });
-}
-async function speak() {
-  if (document.body.classList.contains('locked')) { setTimeout(speak, 800); return; }
-  if (!robo || !speech) return;
-  const r = robo.getBoundingClientRect();
-  const x = r.left + r.width / 2;
-  if (x < 50 || x > innerWidth - 50) { setTimeout(speak, 1200); return; }
-  speech.classList.add('show');
-  await typeLine(speechLines[li % speechLines.length]);
-  li++;
-  speech.classList.remove('show');
-  setTimeout(speak, 3500);
-}
-if (speech && robo) {
-  setTimeout(speak, 2500);
-  robo.addEventListener('mouseenter', () => robo.style.animationPlayState = 'paused');
-  robo.addEventListener('mouseleave', () => robo.style.animationPlayState = 'running');
-}
-</script>
-</body>
-</html>
+const speechLines = ["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","B
