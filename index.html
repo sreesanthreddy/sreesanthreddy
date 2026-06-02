@@ -1040,7 +1040,39 @@ if(imgModal){
 }
 
 // Robot mascot speech bubbles
-const speechLines=["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","Building AI-native data platforms.","300K devices. ~83 TPS. Quiet.","Run cost: down 83%.","Governed by default.","Boring is a feature."];
-const speech=document.getElementById('speech'),robo=document.getElementById('robo');
-let li=0;
-function typeLine(text){return new Promise(resolve=>{speech.innerHTML='<span class="t"></span><
+const speechLines = ["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","Building AI-native data platforms.","300K devices. ~83 TPS. Quiet."];
+const speech = document.getElementById('speech');
+const robo = document.getElementById('robo');
+let li = 0;
+function typeLine(text) {
+  return new Promise(resolve => {
+    if (!speech) { resolve(); return; }
+    speech.innerHTML = '<span class="t"></span><span class="cursor"></span>';
+    const tEl = speech.querySelector('.t');
+    let i = 0;
+    const iv = setInterval(() => {
+      tEl.textContent = text.slice(0, i++);
+      if (i > text.length) { clearInterval(iv); setTimeout(resolve, 2500); }
+    }, 38);
+  });
+}
+async function speak() {
+  if (document.body.classList.contains('locked')) { setTimeout(speak, 800); return; }
+  if (!robo || !speech) return;
+  const r = robo.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  if (x < 50 || x > innerWidth - 50) { setTimeout(speak, 1200); return; }
+  speech.classList.add('show');
+  await typeLine(speechLines[li % speechLines.length]);
+  li++;
+  speech.classList.remove('show');
+  setTimeout(speak, 3500);
+}
+if (speech && robo) {
+  setTimeout(speak, 2500);
+  robo.addEventListener('mouseenter', () => robo.style.animationPlayState = 'paused');
+  robo.addEventListener('mouseleave', () => robo.style.animationPlayState = 'running');
+}
+</script>
+</body>
+</html>
