@@ -778,37 +778,33 @@ introBtn.addEventListener('click',()=>{
   Audio.init();Audio.resume();
   Audio.play({freq:200,dur:0.4,vol:0.8,sweep:300});
   const v=document.getElementById('introVideo');
-  // Pause → unmute → restart → play (fixes Chrome/Firefox bug where mid-playback unmute is ignored)
   if(v){
     try{
       v.pause();
+      v.loop=false;            // CRITICAL: disable loop so 'ended' event fires
+      v.removeAttribute('loop');
       v.muted=false;
       v.volume=1.0;
       v.currentTime=0;
-      const playPromise = v.play();
-      if(playPromise) playPromise.catch(err=>console.warn('video play blocked:',err));
-    }catch(e){ console.warn('video unmute failed:',e); }
+      const playPromise=v.play();
+      if(playPromise) playPromise.catch(err=>{ console.warn('video play blocked:',err); closeIntroNow(); });
+    }catch(e){ console.warn('video unmute failed:',e); closeIntroNow(); }
   }
   introBtn.classList.add('hidden');introLoading.classList.add('show');
   setTimeout(()=>introLoading.classList.add('go'),60);
   intro.classList.add('start');
   setTimeout(()=>Audio.bigChime(),600);
-  // When the video finishes naturally, fade out the intro
-  if(v){
-    v.addEventListener('ended',()=>{
-      intro.classList.add('gone');
-      document.body.classList.remove('locked');
-      setTimeout(()=>{ intro.style.display='none'; try{v.pause();v.muted=true;}catch(e){} },1600);
-    },{once:true});
+
+  function closeIntroNow(){
+    intro.classList.add('gone');
+    document.body.classList.remove('locked');
+    setTimeout(()=>{ intro.style.display='none'; if(v){try{v.pause();v.muted=true;}catch(e){}} },1200);
   }
-  // Safety fallback — if video ends event doesn't fire within 18s, force close
-  setTimeout(()=>{
-    if(intro.style.display!=='none' && !intro.classList.contains('gone')){
-      intro.classList.add('gone');
-      document.body.classList.remove('locked');
-      setTimeout(()=>{ intro.style.display='none'; if(v){try{v.pause();v.muted=true;}catch(e){}} },1600);
-    }
-  },18000);
+
+  // Close on video end
+  if(v){ v.addEventListener('ended', closeIntroNow, {once:true}); }
+  // Safety: hard close at 16s (video is 15s)
+  setTimeout(()=>{ if(intro.style.display!=='none' && !intro.classList.contains('gone')) closeIntroNow(); }, 16000);
 });
 
 // Skip button — close intro immediately
@@ -850,4 +846,4 @@ document.getElementById('imagesBtn').addEventListener('click',()=>{imgModal.clas
 document.getElementById('imgDone').addEventListener('click',()=>{imgModal.classList.remove('open');Audio.chime();});
 document.getElementById('imgClearAll').addEventListener('click',()=>{if(!confirm('Clear all uploaded images?'))return;ASSETS.forEach(clearAsset);});
 imgModal.addEventListener('click',e=>{if(e.target===imgModal)imgModal.classList.remove('open');});
-document.querySelectorAll('.img-slot[data-key]').forEach(slot=>{const key=slot.dataset.key;slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const f=inpu
+document.querySelectorAll('.img-slot[data-key]').forEach(slot=>{const key=slot.dataset.key;slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const f=input.files[0];if(!f)return;const url=await fileToDataUrl(f);saveAsset(key,url);};input.click();});slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('dragover
