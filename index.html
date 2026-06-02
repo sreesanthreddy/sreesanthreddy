@@ -389,7 +389,7 @@ footer .container{padding:0 36px}
   </div>
   <h1 class="intro-title" id="introTitle"></h1>
   <button class="intro-btn" id="introBtn">▶ Check out my profile <span class="arr">→</span></button>
-  <div class="intro-loading" id="introLoading">Preparing <span class="bar"></span></div>
+  <div class="intro-loading" id="introLoading">Playing intro · <span class="bar"></span><span style="margin-left:14px;cursor:pointer;color:rgba(231,224,208,0.7);text-decoration:underline" id="skipIntro">skip</span></div>
 </div>
 
 <div class="paper-tex"></div>
@@ -764,21 +764,47 @@ const intro=document.getElementById('intro'),introBtn=document.getElementById('i
 introBtn.addEventListener('click',()=>{
   Audio.init();Audio.resume();
   Audio.play({freq:200,dur:0.4,vol:0.8,sweep:300});
-  // Unmute the intro video so its audio plays (autoplay required muted until user interaction)
   const v=document.getElementById('introVideo');
-  if(v){ try{ v.muted=false; v.volume=1.0; v.currentTime=0; v.play().catch(()=>{}); }catch(e){} }
-  // Speech synthesis disabled — video has its own audio track now
-  // sayHello();
+  // Pause → unmute → restart → play (fixes Chrome/Firefox bug where mid-playback unmute is ignored)
+  if(v){
+    try{
+      v.pause();
+      v.muted=false;
+      v.volume=1.0;
+      v.currentTime=0;
+      const playPromise = v.play();
+      if(playPromise) playPromise.catch(err=>console.warn('video play blocked:',err));
+    }catch(e){ console.warn('video unmute failed:',e); }
+  }
   introBtn.classList.add('hidden');introLoading.classList.add('show');
   setTimeout(()=>introLoading.classList.add('go'),60);
   intro.classList.add('start');
   setTimeout(()=>Audio.bigChime(),600);
-  setTimeout(()=>{intro.classList.add('gone');document.body.classList.remove('locked');},3200);
+  // When the video finishes naturally, fade out the intro
+  if(v){
+    v.addEventListener('ended',()=>{
+      intro.classList.add('gone');
+      document.body.classList.remove('locked');
+      setTimeout(()=>{ intro.style.display='none'; try{v.pause();v.muted=true;}catch(e){} },1600);
+    },{once:true});
+  }
+  // Safety fallback — if video ends event doesn't fire within 18s, force close
   setTimeout(()=>{
-    intro.style.display='none';
-    // After intro hides, stop video audio so it doesn't keep playing in background
-    if(v){ try{ v.pause(); v.muted=true; }catch(e){} }
-  },4800);
+    if(intro.style.display!=='none' && !intro.classList.contains('gone')){
+      intro.classList.add('gone');
+      document.body.classList.remove('locked');
+      setTimeout(()=>{ intro.style.display='none'; if(v){try{v.pause();v.muted=true;}catch(e){}} },1600);
+    }
+  },18000);
+});
+
+// Skip button — close intro immediately
+const skipBtn=document.getElementById('skipIntro');
+if(skipBtn) skipBtn.addEventListener('click',()=>{
+  const v=document.getElementById('introVideo');
+  intro.classList.add('gone');
+  document.body.classList.remove('locked');
+  setTimeout(()=>{ intro.style.display='none'; if(v){try{v.pause();v.muted=true;}catch(e){}} },1200);
 });
 document.getElementById('soundBtn').addEventListener('click',()=>{Audio.on=!Audio.on;document.getElementById('soundBtn').classList.toggle('on',Audio.on);});
 
@@ -813,10 +839,4 @@ document.getElementById('imgClearAll').addEventListener('click',()=>{if(!confirm
 imgModal.addEventListener('click',e=>{if(e.target===imgModal)imgModal.classList.remove('open');});
 document.querySelectorAll('.img-slot[data-key]').forEach(slot=>{const key=slot.dataset.key;slot.addEventListener('click',e=>{if(e.target.classList.contains('clear'))return;const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const f=input.files[0];if(!f)return;const url=await fileToDataUrl(f);saveAsset(key,url);};input.click();});slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('dragover');});slot.addEventListener('dragleave',()=>slot.classList.remove('dragover'));slot.addEventListener('drop',async e=>{e.preventDefault();slot.classList.remove('dragover');const f=e.dataTransfer.files[0];if(!f||!f.type.startsWith('image/'))return;const url=await fileToDataUrl(f);saveAsset(key,url);});const clear=slot.querySelector('.clear');if(clear)clear.addEventListener('click',e=>{e.stopPropagation();clearAsset(key);});});
 imgModal.addEventListener('dragover',e=>e.preventDefault());
-imgModal.addEventListener('drop',async e=>{e.preventDefault();const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));if(!files.length)return;const slots=Array.from(document.querySelectorAll('.img-slot[data-key]'));let i=0;for(const f of files){while(i<slots.length&&slots[i].classList.contains('filled'))i++;if(i>=slots.length)break;const url=await fileToDataUrl(f);saveAsset(slots[i].dataset.key,url);i++;}});
-
-const speechLines=["Solution architect building enterprise solutions, moving to the cloud.","Sreesanth Reddy Samala — Lead AI & Solutions Architect.","Cortex Code AI ready.","Open to staff / principal architect roles.","Building AI-native data platforms.","300K devices. ~83 TPS. Quiet.","Run cost: down 83%.","Governed by default.","Boring is a feature."];
-const speech=document.getElementById('speech'),robo=document.getElementById('robo');
-let li=0;
-function typeLine(text){return new Promise(resolve=>{speech.innerHTML='<span class="t"></span><span class="cursor"></span>';const tEl=speech.querySelector('.t');let i=0;const iv=setInterval(()=>{tEl.textContent=text.slice(0,i++);if(i>text.length){clearInterval(iv);setTimeout(resolve,2500);}},38);});}
-async function speak(){if(document.body.classList.contains('locked')){setTimeout(s
+imgModal.addEventListener('drop',async e=>{e.preventDefault();const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));if(!files.length)return;const slots=Array.from(document.querySelectorAll('.img-slot[data-key]'));let i=0;for(const f 
